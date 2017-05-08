@@ -1,22 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
+﻿using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using BookmarksStore.Models;
 using BookmarksStore.Services;
 using BookmarksStore.Services.StorageService;
-using System.Web;
 using Microsoft.AspNet.Identity;
-using System.Threading;
-using Microsoft.Owin.Host.SystemWeb;
-using Microsoft.AspNet.Identity.Owin;
 
 namespace BookmarksStore.Controllers
 {
@@ -43,7 +35,7 @@ namespace BookmarksStore.Controllers
         public async Task<IHttpActionResult> GetCatalogModel(int id)
         {
             var catalog = _catalogService.LoadById(id);
-            
+
             if (catalog == null)
             {
                 return NotFound();
@@ -55,16 +47,12 @@ namespace BookmarksStore.Controllers
         // PUT: api/CatalogModels/5
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> PutCatalogModel(int id, CatalogModel catalogModel)
-        {           
+        {
             if (!ModelState.IsValid)
-            {
                 return BadRequest(ModelState);
-            }
 
             if (id != catalogModel.Id)
-            {
                 return BadRequest();
-            }
 
             try
             {
@@ -74,7 +62,8 @@ namespace BookmarksStore.Controllers
             {
                 return NotFound();
             }
-            return StatusCode(HttpStatusCode.NoContent);
+
+            return StatusCode(HttpStatusCode.OK);
         }
 
         // POST: api/CatalogModels
@@ -95,7 +84,7 @@ namespace BookmarksStore.Controllers
         [ResponseType(typeof(CatalogModel))]
         public async Task<IHttpActionResult> DeleteCatalogModel(int id)
         {
-          
+
             var res = _catalogService.Delete(id);
 
             return Ok(res);

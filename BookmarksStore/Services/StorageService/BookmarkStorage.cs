@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BookmarksStore.Models;
-using System.Web;
 using System;
-using System.Web.Http.ModelBinding;
 using System.Data.Entity;
 
 namespace BookmarksStore.Services.StorageService

@@ -66,26 +66,14 @@ namespace BookmarksStore.Controllers
                 return BadRequest();
             }
 
-            CatalogModel catalog = _catalogService.Add(catalogModel);
-           
-
             try
             {
-                db.Entry(catalogModel).State = EntityState.Modified;
-                await db.SaveChangesAsync();
+                _catalogService.Update(id, catalogModel);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CatalogModelExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
-
             return StatusCode(HttpStatusCode.NoContent);
         }
 
@@ -98,26 +86,19 @@ namespace BookmarksStore.Controllers
                 return BadRequest(ModelState);
             }
 
-            db.CatalogModels.Add(catalogModel);
-            await db.SaveChangesAsync();
+            CatalogModel catalog = _catalogService.Add(catalogModel);
 
-            return CreatedAtRoute("DefaultApi", new { id = catalogModel.Id }, catalogModel);
+            return CreatedAtRoute("DefaultApi", new { id = catalog.Id }, catalog);
         }
 
         // DELETE: api/CatalogModels/5
         [ResponseType(typeof(CatalogModel))]
         public async Task<IHttpActionResult> DeleteCatalogModel(int id)
         {
-            CatalogModel catalogModel = await db.CatalogModels.FindAsync(id);
-            if (catalogModel == null)
-            {
-                return NotFound();
-            }
+          
+            var res = _catalogService.Delete(id);
 
-            db.CatalogModels.Remove(catalogModel);
-            await db.SaveChangesAsync();
-
-            return Ok(catalogModel);
+            return Ok(res);
         }
 
         protected override void Dispose(bool disposing)

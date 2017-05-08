@@ -36,5 +36,14 @@ namespace BookmarksStore.Services
                 return result;
             return new CatalogModel();
         }
+        public int Delete(int id)
+        {
+            return _storage.Remove(id);
+        }
+
+        internal void Update(int id, CatalogModel catalogModel)
+        {
+            _storage.Update(catalogModel);
+        }
     }
 }

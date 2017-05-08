@@ -9,5 +9,7 @@ namespace BookmarksStore.Services.StorageService
         CatalogModel FindById(int id);
         IEnumerable<CatalogModel> FindByParentId(int parentId);
         CatalogModel Create(CatalogModel catalogModel);
+        int Remove(int id);
+        void Update(CatalogModel catalogModel);
     }
 }

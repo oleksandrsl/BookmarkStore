@@ -24,9 +24,7 @@ namespace BookmarksStore.Services.StorageService
 
         public virtual IEnumerable<CatalogModel> List()
         {
-            if (db.CatalogModels.Count() > 0)
-                return UserCatalogs();
-            return new List<CatalogModel>();
+            return UserCatalogs();
         }
 
         public virtual IEnumerable<CatalogModel> FindByParentId(int parentId)
@@ -73,13 +71,42 @@ namespace BookmarksStore.Services.StorageService
         {
             try
             {
-                db.Entry(catalogModel).State = EntityState.Modified;
+                db.Entry(catalogModel).State = EntityState.Added;
                 var result = db.SaveChanges();
                 return db.CatalogModels.First(a => a.Id == catalogModel.Id);
-            }
+            }   
             catch (Exception ex)
             {
                 return new CatalogModel();
+            }
+        }
+
+        public int Remove(int id)
+        {
+            try
+            {
+                var catalog = db.CatalogModels.First(c => c.Id == id && c.OwnerId == _user.Id);
+
+                db.CatalogModels.Remove(catalog);
+                return db.SaveChanges();
+            
+            }
+            catch (Exception ex)
+            {
+                return 0;
+            }
+        }
+
+        public void Update(CatalogModel catalogModel)
+        {
+            try
+            {
+                db.Entry(catalogModel).State = EntityState.Modified;
+                var result = db.SaveChanges();
+            }
+            catch (Exception ex)
+            {
+                
             }
         }
     }

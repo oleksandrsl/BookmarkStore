@@ -15,7 +15,7 @@ namespace BookmarksStore.Models
         // For more information refer to the documentation:
         // http://msdn.microsoft.com/en-us/data/jj591621.aspx
     
-        public CatalogContext() : base("name=CatalogContext")
+        public CatalogContext() : base("name=DefaultConnection")
         {
         }
 

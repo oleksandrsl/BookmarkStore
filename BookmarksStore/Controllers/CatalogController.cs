@@ -10,36 +10,52 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using BookmarksStore.Models;
+using BookmarksStore.Services;
+using BookmarksStore.Services.StorageService;
+using System.Web;
+using Microsoft.AspNet.Identity;
+using System.Threading;
+using Microsoft.Owin.Host.SystemWeb;
+using Microsoft.AspNet.Identity.Owin;
 
 namespace BookmarksStore.Controllers
 {
+    [Authorize]
     public class CatalogController : ApiController
     {
-        private CatalogContext db = new CatalogContext();
-
+        CatalogContext db = new CatalogContext();
+        private CatalogService _catalogService = new CatalogService();
         // GET: api/CatalogModels
-        public IQueryable<CatalogModel> GetCatalogModels()
+        public CatalogController()
         {
-            return db.CatalogModels;
+            BookmarkStorage store = new BookmarkStorage();
+            store.Init(new ApplicationUser() { Id = User.Identity.GetUserId() });
+            _catalogService.Init(store);
+        }
+
+        public IEnumerable<CatalogModel> GetCatalogModel()
+        {
+            return _catalogService.Load();
         }
 
         // GET: api/CatalogModels/5
         [ResponseType(typeof(CatalogModel))]
         public async Task<IHttpActionResult> GetCatalogModel(int id)
         {
-            CatalogModel catalogModel = await db.CatalogModels.FindAsync(id);
-            if (catalogModel == null)
+            var catalog = _catalogService.LoadById(id);
+            
+            if (catalog == null)
             {
                 return NotFound();
             }
 
-            return Ok(catalogModel);
+            return Ok(catalog);
         }
 
         // PUT: api/CatalogModels/5
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> PutCatalogModel(int id, CatalogModel catalogModel)
-        {
+        {           
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
@@ -50,10 +66,12 @@ namespace BookmarksStore.Controllers
                 return BadRequest();
             }
 
-            db.Entry(catalogModel).State = EntityState.Modified;
+            CatalogModel catalog = _catalogService.Add(catalogModel);
+           
 
             try
             {
+                db.Entry(catalogModel).State = EntityState.Modified;
                 await db.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)

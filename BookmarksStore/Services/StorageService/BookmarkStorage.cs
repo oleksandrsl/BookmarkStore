@@ -1,6 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using BookmarksStore.Models;
+using System.Web;
+using System;
+using System.Web.Http.ModelBinding;
+using System.Data.Entity;
 
 namespace BookmarksStore.Services.StorageService
 {
@@ -8,7 +12,7 @@ namespace BookmarksStore.Services.StorageService
     {
         private ApplicationUser _user;
         private CatalogContext db = new CatalogContext();
-
+        private CatalogModel _catalogModel = new CatalogModel();
         public void Init(ApplicationUser user)
         {
             if (user == null)
@@ -16,33 +20,66 @@ namespace BookmarksStore.Services.StorageService
 
             _user = user;
         }
+ 
 
         public virtual IEnumerable<CatalogModel> List()
         {
-            if (db.CatalogModels != null)
-                return UserCatalogs;
+            if (db.CatalogModels.Count() > 0)
+                return UserCatalogs();
             return new List<CatalogModel>();
         }
 
         public virtual IEnumerable<CatalogModel> FindByParentId(int parentId)
         {
-            if (db.CatalogModels != null)
-                return UserCatalogs.Where(a => a.ParentId == parentId);
-            return new List<CatalogModel>();
+            try
+            {
+                return UserCatalogs().Where(a => a.ParentId == parentId);
+            }
+            catch (Exception ex)
+            {
+                //TODO: Unexpected exception
+                return new List<CatalogModel>();
+            }
         }
 
         public virtual CatalogModel FindById(int id)
         {
-            if (db.CatalogModels != null)
-                return UserCatalogs.First(a => a.Id == id);
-            return new CatalogModel();
+            try
+            {
+
+                return UserCatalogs().First(a => a.Id == id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: Unexpected exception
+                return new CatalogModel();
+            }
         }
 
-        private IEnumerable<CatalogModel> UserCatalogs
+        private IEnumerable<CatalogModel> UserCatalogs()
         {
-            get
+            try
             {
                 return db.CatalogModels.Where(a => a.OwnerId == _user.Id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: Unexpected exception
+                return new List<CatalogModel>();
+            }
+        }
+
+        public CatalogModel Create(CatalogModel catalogModel)
+        {
+            try
+            {
+                db.Entry(catalogModel).State = EntityState.Modified;
+                var result = db.SaveChanges();
+                return db.CatalogModels.First(a => a.Id == catalogModel.Id);
+            }
+            catch (Exception ex)
+            {
+                return new CatalogModel();
             }
         }
     }

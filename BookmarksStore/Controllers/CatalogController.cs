@@ -46,6 +46,7 @@ namespace BookmarksStore.Controllers
             return Ok(catalog);
         }
 
+        [HttpPut]
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> UpdateCatalog(int id, CatalogModel catalogModel)
         {

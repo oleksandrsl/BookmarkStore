@@ -18,7 +18,7 @@ namespace BookmarksStore.Services.StorageService
 
             _user = user;
         }
- 
+
 
         public virtual IEnumerable<CatalogModel> List()
         {
@@ -72,7 +72,7 @@ namespace BookmarksStore.Services.StorageService
                 db.Entry(catalogModel).State = EntityState.Added;
                 var result = db.SaveChanges();
                 return db.CatalogModels.First(a => a.Id == catalogModel.Id);
-            }   
+            }
             catch (Exception ex)
             {
                 return new CatalogModel();
@@ -87,7 +87,7 @@ namespace BookmarksStore.Services.StorageService
 
                 db.CatalogModels.Remove(catalog);
                 return db.SaveChanges();
-            
+
             }
             catch (Exception ex)
             {
@@ -104,7 +104,7 @@ namespace BookmarksStore.Services.StorageService
             }
             catch (Exception ex)
             {
-                
+
             }
         }
     }

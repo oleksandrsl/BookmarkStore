@@ -1,7 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
-using System.Security.Claims;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -22,7 +19,7 @@ namespace BookmarksStore.Controllers
         {
         }
 
-        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
+        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
         {
             UserManager = userManager;
             SignInManager = signInManager;
@@ -34,9 +31,9 @@ namespace BookmarksStore.Controllers
             {
                 return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
             }
-            private set 
-            { 
-                _signInManager = value; 
+            private set
+            {
+                _signInManager = value;
             }
         }
 
@@ -52,8 +49,6 @@ namespace BookmarksStore.Controllers
             }
         }
 
-        //
-        // GET: /Account/Login
         [AllowAnonymous]
         public ActionResult Login(string returnUrl)
         {
@@ -61,8 +56,6 @@ namespace BookmarksStore.Controllers
             return View();
         }
 
-        //
-        // POST: /Account/Login
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -73,8 +66,6 @@ namespace BookmarksStore.Controllers
                 return View(model);
             }
 
-            // Сбои при входе не приводят к блокированию учетной записи
-            // Чтобы ошибки при вводе пароля инициировали блокирование учетной записи, замените на shouldLockout: true
             var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
             switch (result)
             {
@@ -91,12 +82,9 @@ namespace BookmarksStore.Controllers
             }
         }
 
-        //
-        // GET: /Account/VerifyCode
         [AllowAnonymous]
         public async Task<ActionResult> VerifyCode(string provider, string returnUrl, bool rememberMe)
         {
-            // Требовать предварительный вход пользователя с помощью имени пользователя и пароля или внешнего имени входа
             if (!await SignInManager.HasBeenVerifiedAsync())
             {
                 return View("Error");
@@ -104,8 +92,6 @@ namespace BookmarksStore.Controllers
             return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
-        //
-        // POST: /Account/VerifyCode
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -116,11 +102,7 @@ namespace BookmarksStore.Controllers
                 return View(model);
             }
 
-            // Приведенный ниже код защищает от атак методом подбора, направленных на двухфакторные коды. 
-            // Если пользователь введет неправильные коды за указанное время, его учетная запись 
-            // будет заблокирована на заданный период. 
-            // Параметры блокирования учетных записей можно настроить в IdentityConfig
-            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent:  model.RememberMe, rememberBrowser: model.RememberBrowser);
+            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent: model.RememberMe, rememberBrowser: model.RememberBrowser);
             switch (result)
             {
                 case SignInStatus.Success:
@@ -134,16 +116,12 @@ namespace BookmarksStore.Controllers
             }
         }
 
-        //
-        // GET: /Account/Register
         [AllowAnonymous]
         public ActionResult Register()
         {
             return View();
         }
 
-        //
-        // POST: /Account/Register
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -155,25 +133,16 @@ namespace BookmarksStore.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
-                    // Дополнительные сведения о том, как включить подтверждение учетной записи и сброс пароля, см. по адресу: http://go.microsoft.com/fwlink/?LinkID=320771
-                    // Отправка сообщения электронной почты с этой ссылкой
-                    // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-                    // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Подтверждение учетной записи", "Подтвердите вашу учетную запись, щелкнув <a href=\"" + callbackUrl + "\">здесь</a>");
+                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
 
                     return RedirectToAction("Index", "Home");
                 }
                 AddErrors(result);
             }
 
-            // Появление этого сообщения означает наличие ошибки; повторное отображение формы
             return View(model);
         }
 
-        //
-        // GET: /Account/ConfirmEmail
         [AllowAnonymous]
         public async Task<ActionResult> ConfirmEmail(string userId, string code)
         {
@@ -185,16 +154,12 @@ namespace BookmarksStore.Controllers
             return View(result.Succeeded ? "ConfirmEmail" : "Error");
         }
 
-        //
-        // GET: /Account/ForgotPassword
         [AllowAnonymous]
         public ActionResult ForgotPassword()
         {
             return View();
         }
 
-        //
-        // POST: /Account/ForgotPassword
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -205,40 +170,25 @@ namespace BookmarksStore.Controllers
                 var user = await UserManager.FindByNameAsync(model.Email);
                 if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
                 {
-                    // Не показывать, что пользователь не существует или не подтвержден
                     return View("ForgotPasswordConfirmation");
                 }
-
-                // Дополнительные сведения о том, как включить подтверждение учетной записи и сброс пароля, см. по адресу: http://go.microsoft.com/fwlink/?LinkID=320771
-                // Отправка сообщения электронной почты с этой ссылкой
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Сброс пароля", "Сбросьте ваш пароль, щелкнув <a href=\"" + callbackUrl + "\">здесь</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
-            // Появление этого сообщения означает наличие ошибки; повторное отображение формы
             return View(model);
         }
 
-        //
-        // GET: /Account/ForgotPasswordConfirmation
         [AllowAnonymous]
         public ActionResult ForgotPasswordConfirmation()
         {
             return View();
         }
 
-        //
-        // GET: /Account/ResetPassword
         [AllowAnonymous]
         public ActionResult ResetPassword(string code)
         {
             return code == null ? View("Error") : View();
         }
 
-        //
-        // POST: /Account/ResetPassword
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -251,7 +201,6 @@ namespace BookmarksStore.Controllers
             var user = await UserManager.FindByNameAsync(model.Email);
             if (user == null)
             {
-                // Не показывать, что пользователь не существует
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
@@ -263,27 +212,20 @@ namespace BookmarksStore.Controllers
             return View();
         }
 
-        //
-        // GET: /Account/ResetPasswordConfirmation
         [AllowAnonymous]
         public ActionResult ResetPasswordConfirmation()
         {
             return View();
         }
 
-        //
-        // POST: /Account/ExternalLogin
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
-            // Запрос перенаправления к внешнему поставщику входа
             return new ChallengeResult(provider, Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl }));
         }
 
-        //
-        // GET: /Account/SendCode
         [AllowAnonymous]
         public async Task<ActionResult> SendCode(string returnUrl, bool rememberMe)
         {
@@ -297,8 +239,6 @@ namespace BookmarksStore.Controllers
             return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
-        //
-        // POST: /Account/SendCode
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -309,7 +249,6 @@ namespace BookmarksStore.Controllers
                 return View();
             }
 
-            // Создание и отправка маркера
             if (!await SignInManager.SendTwoFactorCodeAsync(model.SelectedProvider))
             {
                 return View("Error");
@@ -317,8 +256,6 @@ namespace BookmarksStore.Controllers
             return RedirectToAction("VerifyCode", new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
         }
 
-        //
-        // GET: /Account/ExternalLoginCallback
         [AllowAnonymous]
         public async Task<ActionResult> ExternalLoginCallback(string returnUrl)
         {
@@ -328,7 +265,6 @@ namespace BookmarksStore.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Выполнение входа пользователя посредством данного внешнего поставщика входа, если у пользователя уже есть имя входа
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
             switch (result)
             {
@@ -340,15 +276,12 @@ namespace BookmarksStore.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
                 case SignInStatus.Failure:
                 default:
-                    // Если у пользователя нет учетной записи, то ему предлагается создать ее
                     ViewBag.ReturnUrl = returnUrl;
                     ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
                     return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
             }
         }
 
-        //
-        // POST: /Account/ExternalLoginConfirmation
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
@@ -361,7 +294,6 @@ namespace BookmarksStore.Controllers
 
             if (ModelState.IsValid)
             {
-                // Получение сведений о пользователе от внешнего поставщика входа
                 var info = await AuthenticationManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
@@ -385,8 +317,6 @@ namespace BookmarksStore.Controllers
             return View(model);
         }
 
-        //
-        // POST: /Account/LogOff
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult LogOff()
@@ -395,8 +325,6 @@ namespace BookmarksStore.Controllers
             return RedirectToAction("Index", "Home");
         }
 
-        //
-        // GET: /Account/ExternalLoginFailure
         [AllowAnonymous]
         public ActionResult ExternalLoginFailure()
         {
@@ -423,8 +351,6 @@ namespace BookmarksStore.Controllers
             base.Dispose(disposing);
         }
 
-        #region Вспомогательные приложения
-        // Используется для защиты от XSRF-атак при добавлении внешних имен входа
         private const string XsrfKey = "XsrfId";
 
         private IAuthenticationManager AuthenticationManager
@@ -480,6 +406,5 @@ namespace BookmarksStore.Controllers
                 context.HttpContext.GetOwinContext().Authentication.Challenge(properties, LoginProvider);
             }
         }
-        #endregion
     }
 }

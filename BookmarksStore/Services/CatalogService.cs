@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using BookmarksStore.Models;
 using BookmarksStore.Services.StorageService;
 
@@ -31,10 +30,9 @@ namespace BookmarksStore.Services
 
         internal CatalogModel Add(CatalogModel catalogModel)
         {
-            CatalogModel result = _storage.Create(catalogModel);
-            if (result.Id == catalogModel.Id)
-                return result;
-            return new CatalogModel();
+            var result = _storage.Create(catalogModel);
+
+            return result == null ? new CatalogModel() : result;
         }
         public int Delete(int id)
         {

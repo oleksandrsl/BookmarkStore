@@ -1,38 +1,40 @@
 ﻿using System.Collections.Generic;
 using System.Data.Entity.Infrastructure;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
+using Microsoft.AspNet.Identity;
 using BookmarksStore.Models;
 using BookmarksStore.Services;
 using BookmarksStore.Services.StorageService;
-using Microsoft.AspNet.Identity;
 
 namespace BookmarksStore.Controllers
 {
     [Authorize]
     public class CatalogController : ApiController
     {
-        CatalogContext db = new CatalogContext();
         private CatalogService _catalogService = new CatalogService();
-        // GET: api/CatalogModels
+
         public CatalogController()
         {
             BookmarkStorage store = new BookmarkStorage();
-            store.Init(new ApplicationUser() { Id = User.Identity.GetUserId() });
+
+            store.Init(new ApplicationUser()
+            {
+                Id = User.Identity.GetUserId()
+            });
+
             _catalogService.Init(store);
         }
 
-        public IEnumerable<CatalogModel> GetCatalogModel()
+        public IEnumerable<CatalogModel> GetAllCatalogs()
         {
             return _catalogService.Load();
         }
 
-        // GET: api/CatalogModels/5
         [ResponseType(typeof(CatalogModel))]
-        public async Task<IHttpActionResult> GetCatalogModel(int id)
+        public async Task<IHttpActionResult> GetCatalogById(int id)
         {
             var catalog = _catalogService.LoadById(id);
 
@@ -44,15 +46,11 @@ namespace BookmarksStore.Controllers
             return Ok(catalog);
         }
 
-        // PUT: api/CatalogModels/5
         [ResponseType(typeof(void))]
-        public async Task<IHttpActionResult> PutCatalogModel(int id, CatalogModel catalogModel)
+        public async Task<IHttpActionResult> UpdateCatalog(int id, CatalogModel catalogModel)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid || id != catalogModel.Id)
                 return BadRequest(ModelState);
-
-            if (id != catalogModel.Id)
-                return BadRequest();
 
             try
             {
@@ -66,42 +64,25 @@ namespace BookmarksStore.Controllers
             return StatusCode(HttpStatusCode.OK);
         }
 
-        // POST: api/CatalogModels
         [ResponseType(typeof(CatalogModel))]
-        public async Task<IHttpActionResult> PostCatalogModel(CatalogModel catalogModel)
+        public async Task<IHttpActionResult> CreateCatalog(CatalogModel catalogModel)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            CatalogModel catalog = _catalogService.Add(catalogModel);
+            var catalog = _catalogService.Add(catalogModel);
 
-            return CreatedAtRoute("DefaultApi", new { id = catalog.Id }, catalog);
+            return CreatedAtRoute("default", new { id = catalog.Id }, catalog);
         }
 
-        // DELETE: api/CatalogModels/5
         [ResponseType(typeof(CatalogModel))]
-        public async Task<IHttpActionResult> DeleteCatalogModel(int id)
+        public async Task<IHttpActionResult> DeleteCatalog(int id)
         {
+            var status = _catalogService.Delete(id);
 
-            var res = _catalogService.Delete(id);
-
-            return Ok(res);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                db.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private bool CatalogModelExists(int id)
-        {
-            return db.CatalogModels.Count(e => e.Id == id) > 0;
+            return Ok(status);
         }
     }
 }
